@@ -2,7 +2,7 @@
 
 ## URL pública
 
-🔗 **https://CAMBIAR-POR-SU-URL.infinityfreeapp.com**
+🔗 **https://agendaivan2026.freehosting.dev**
 
 La aplicación está publicada en el hosting gratuito **InfinityFree**. Para probarla, cree una cuenta en "Regístrese aquí" e inicie sesión.
 
