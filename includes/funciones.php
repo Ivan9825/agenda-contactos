@@ -88,10 +88,23 @@ function mostrar_flash(): string
 }
 
 /**
+ * Devuelve las categorías como arreglo [id => nombre].
+ */
+function obtener_categorias(PDO $pdo): array
+{
+    $stmt = $pdo->query('SELECT id, nombre FROM categorias ORDER BY id');
+    $categorias = [];
+    foreach ($stmt as $fila) {
+        $categorias[(int) $fila['id']] = $fila['nombre'];
+    }
+    return $categorias;
+}
+
+/**
  * Valida los datos de un contacto en el servidor.
  * Devuelve un arreglo con los errores encontrados (vacío si todo está bien).
  */
-function validar_contacto(array $d): array
+function validar_contacto(array $d, array $categorias): array
 {
     $errores = [];
 
@@ -107,6 +120,9 @@ function validar_contacto(array $d): array
     if ($d['ciudad'] === '' || mb_strlen($d['ciudad']) > 80) {
         $errores[] = 'La ciudad es obligatoria (máximo 80 caracteres).';
     }
+    if (!isset($categorias[$d['id_categoria']])) {
+        $errores[] = 'Seleccione una categoría válida.';
+    }
 
     return $errores;
 }
@@ -121,5 +137,16 @@ function datos_contacto_post(): array
         'telefono' => trim($_POST['telefono'] ?? ''),
         'correo'   => trim($_POST['correo'] ?? ''),
         'ciudad'   => trim($_POST['ciudad'] ?? ''),
+        'id_categoria' => (int) ($_POST['id_categoria'] ?? 0),
+        'favorito'     => isset($_POST['favorito']) ? 1 : 0,
     ];
+}
+
+/**
+ * Prepara un texto para usarlo dentro de LIKE.
+ * Los comodines % y _ se escapan con ! (ver ESCAPE '!' en panel.php).
+ */
+function escapar_like(string $texto): string
+{
+    return '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $texto) . '%';
 }

@@ -10,7 +10,9 @@ $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 // Buscar el contacto SOLO si pertenece al usuario de la sesión.
 // Si alguien cambia el id en la URL por el de otro usuario, no se encuentra nada.
 $stmt = $pdo->prepare(
-    'SELECT id, nombre, telefono, correo, ciudad FROM contactos WHERE id = ? AND id_usuario = ?'
+    'SELECT id, id_categoria, nombre, telefono, correo, ciudad, favorito
+       FROM contactos
+      WHERE id = ? AND id_usuario = ?'
 );
 $stmt->execute([$id, $_SESSION['usuario_id']]);
 $contacto = $stmt->fetch();
@@ -22,11 +24,12 @@ if (!$contacto) {
     exit;
 }
 
-$errores = [];
+$errores    = [];
+$categorias = obtener_categorias($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contacto = array_merge($contacto, datos_contacto_post());
-    $errores  = validar_contacto($contacto);
+    $errores  = validar_contacto($contacto, $categorias);
 
     if (!validar_csrf()) {
         $errores[] = 'La sesión del formulario expiró. Vuelva a intentarlo.';
@@ -36,14 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // El WHERE vuelve a comprobar que el contacto sea del usuario
         $stmt = $pdo->prepare(
             'UPDATE contactos
-                SET nombre = ?, telefono = ?, correo = ?, ciudad = ?
+                SET id_categoria = ?, nombre = ?, telefono = ?, correo = ?, ciudad = ?, favorito = ?
               WHERE id = ? AND id_usuario = ?'
         );
         $stmt->execute([
+            $contacto['id_categoria'],
             $contacto['nombre'],
             $contacto['telefono'],
             $contacto['correo'],
             $contacto['ciudad'],
+            $contacto['favorito'],
             $id,
             $_SESSION['usuario_id'],
         ]);

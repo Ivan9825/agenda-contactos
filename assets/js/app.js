@@ -2,7 +2,7 @@
 // Programación orientada a eventos en el navegador
 // El código no se ejecuta en orden de arriba hacia abajo como en la
 // línea de comandos: espera a que el usuario haga algo (enviar un
-// formulario, escribir, hacer clic) y responde a ese evento.
+// formulario, escribir, cambiar una opción) y responde a ese evento.
 // =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', (evento) => {
             let valido = true;
 
-            form.querySelectorAll('input[required]').forEach((campo) => {
+            form.querySelectorAll('input[required], select[required]').forEach((campo) => {
                 let mensaje = '';
 
                 if (campo.value.trim() === '') {
@@ -48,18 +48,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // --- Evento "input": quitar el error mientras el usuario corrige ---
-        form.querySelectorAll('input').forEach((campo) => {
+        form.querySelectorAll('input, select').forEach((campo) => {
             campo.addEventListener('input', () => marcarCampo(campo, ''));
         });
     });
 
-    // --- Evento "input": filtrar la tabla de contactos al escribir ---
-    const buscador = document.getElementById('buscador');
-    if (buscador) {
-        buscador.addEventListener('input', () => {
-            const texto = buscador.value.toLowerCase();
-            document.querySelectorAll('#tabla-contactos tbody tr').forEach((fila) => {
-                fila.style.display = fila.textContent.toLowerCase().includes(texto) ? '' : 'none';
+    // --- Evento "change": aplicar los filtros del panel al cambiar una opción ---
+    // Al cambiar la categoría, el orden o "Solo favoritos", el formulario
+    // se envía solo y el servidor devuelve la lista ya filtrada.
+    const formFiltros = document.getElementById('form-filtros');
+    if (formFiltros) {
+        formFiltros.querySelectorAll('[data-auto]').forEach((control) => {
+            control.addEventListener('change', () => {
+                // Si se cambia "Buscar en" sin texto escrito, no hace falta recargar
+                if (control.name === 'campo' && formFiltros.q.value.trim() === '') return;
+                formFiltros.submit();
             });
         });
     }

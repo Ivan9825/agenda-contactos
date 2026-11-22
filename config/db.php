@@ -1,19 +1,28 @@
 <?php
 // =========================================================
 // Conexión a la base de datos con PDO
-// Cambia estos datos según tu instalación (XAMPP por defecto).
+// En local usa los datos de XAMPP. En el hosting se usan los datos
+// de config/credenciales.php (ese archivo no se sube a GitHub).
 // =========================================================
 
-$DB_HOST = 'localhost';
-$DB_NAME = 'agenda_contactos';
-$DB_USER = 'root';
-$DB_PASS = '';
+$config = [
+    'host' => 'localhost',
+    'name' => 'agenda_contactos',
+    'user' => 'root',
+    'pass' => '',
+];
+
+if (is_file(__DIR__ . '/credenciales.php')) {
+    $config = array_merge($config, require __DIR__ . '/credenciales.php');
+}
+
+$dsn = $config['dsn'] ?? "mysql:host={$config['host']};dbname={$config['name']};charset=utf8mb4";
 
 try {
     $pdo = new PDO(
-        "mysql:host=$DB_HOST;dbname=$DB_NAME;charset=utf8mb4",
-        $DB_USER,
-        $DB_PASS,
+        $dsn,
+        $config['user'],
+        $config['pass'],
         [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // lanza errores como excepciones
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,      // resultados como arreglos asociativos
@@ -25,3 +34,5 @@ try {
     error_log('Error de conexión: ' . $e->getMessage());
     die('No se pudo conectar con la base de datos. Intente más tarde.');
 }
+
+unset($config);
